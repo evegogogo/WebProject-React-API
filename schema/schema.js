@@ -1,12 +1,16 @@
 const graphql = require('graphql');
 const _ = require('lodash');
+const Food = require('../models/food');
+const Exercise = require('../models/exercise');
+const User = require('../models/user');
 
 const {
     GraphQLObjectType,
     GraphQLString,
     GraphQLFloat,
     GraphQLID,
-    GraphQLSchema
+    GraphQLSchema,
+    GraphQLList
 } = graphql;
 
 var foods = [
@@ -54,7 +58,6 @@ const ExerciseType = new GraphQLObjectType({
         id: { type: GraphQLID },
         name: { type: GraphQLString },
         status: { type: GraphQLString },
-        user: { type: GraphQLString },
         calories: { type: GraphQLFloat },
         due: { type: GraphQLString },
         user: {
@@ -72,11 +75,17 @@ const UserType = new GraphQLObjectType({
     fields: () => ({
         id: { type: GraphQLID },
         name: { type: GraphQLString },
-        exercise: {
-            type: ExerciseType,
+        exercises: {
+            type: new GraphQLList(ExerciseType),
             resolve(parent, args) {
                 console.log(parent);
-                return _.find(exercises, { name })
+                return _.filter(exercises, { userId: parent.id });
+            }
+        },
+        foods: {
+            type: new GraphQLList(FoodType),
+            resolve(parent, args) {
+                return _.filter(foods, { userId: parent.id });
             }
         }
     })
@@ -97,6 +106,25 @@ const RootQuery = new GraphQLObjectType({
             args: { name: { type: GraphQLString } },
             resolve(parent, args) {
                 return _.find(exercises, { name: args.name });
+            }
+        },
+        user: {
+            type: UserType,
+            args: { name: { type: GraphQLString } },
+            resolve(parent, args) {
+                return _.find(users, { name: args.name });
+            }
+        },
+        foods: {
+            type: new GraphQLList(FoodType),
+            resolve(parent, args) {
+                return foods;
+            }
+        },
+        exercises: {
+            type: new GraphQLList(ExerciseType),
+            resolve(parent, args) {
+                return exercises;
             }
         }
     }
