@@ -163,7 +163,7 @@ const Mutation = new GraphQLObjectType({
                 });
                 return food.save();
             }
-        }/* ,
+        },
         addExercise: {
             type: ExerciseType,
             args: {
@@ -171,7 +171,7 @@ const Mutation = new GraphQLObjectType({
                 status: { type: GraphQLString },
                 calories: { type: GraphQLFloat },
                 due: { type: GraphQLString },
-                userId: { Type: GraphQLID }
+                userId: { type: GraphQLID }
             },
             resolve(parents, args) {
                 let exercise = new Exercise({
@@ -181,9 +181,9 @@ const Mutation = new GraphQLObjectType({
                     due: args.due,
                     userId: args.userId
                 });
-                return exercise.save(); 
+                return exercise.save();
             }
-    } */
+        }
     }
 });
 
