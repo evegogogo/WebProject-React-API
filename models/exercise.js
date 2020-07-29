@@ -6,7 +6,7 @@ const exerciseSchema = new Schema({
     status: String,
     calories: Number,
     due: String,
-    user: String
+    userId: String
 });
 
 

@@ -13,16 +13,17 @@ const {
     GraphQLList
 } = graphql;
 
-var foods = [
+
+/* var foods = [
     { id: '1', name: 'banana', calories: 300, userId: '2' },
     { id: '2', name: 'chicken', calories: 1000, userId: '2' },
     { id: '3', name: 'steak', calories: 2000, userId: '1' },
     { id: '4', name: 'fish', calories: 700, userId: '1' },
     { id: '5', name: 'milk', calories: 100, userId: '2' },
     { id: '6', name: 'burger', calories: 900, userId: '1' }
-];
+]; */
 
-var exercises = [
+/* var exercises = [
     { id: '1', name: 'basketball', calories: 500, userId: '1' },
     { id: '2', name: 'lifting', calories: 600, userId: '1' },
     { id: '3', name: 'tennis', calories: 800, userId: '2' },
@@ -33,7 +34,7 @@ var exercises = [
 var users = [
     { id: '1', name: 'jingzheng' },
     { id: '2', name: 'menglin' }
-]
+] */
 
 const FoodType = new GraphQLObjectType({
     name: 'Food',
@@ -41,12 +42,10 @@ const FoodType = new GraphQLObjectType({
         id: { type: GraphQLID },
         name: { type: GraphQLString },
         calories: { type: GraphQLFloat },
-        status: { type: GraphQLString },
         user: {
             type: UserType,
             resolve(parent, args) {
-                console.log(parent);
-                return _.find(users, { id: parent.userId });
+                return User.findById(parent.userId);
             }
         }
     })
@@ -63,8 +62,7 @@ const ExerciseType = new GraphQLObjectType({
         user: {
             type: UserType,
             resolve(parent, args) {
-                console.log(parent);
-                return _.find(users, { id: parent.userId });
+                return User.findById(parent.userId);
             }
         }
     })
@@ -78,14 +76,13 @@ const UserType = new GraphQLObjectType({
         exercises: {
             type: new GraphQLList(ExerciseType),
             resolve(parent, args) {
-                console.log(parent);
-                return _.filter(exercises, { userId: parent.id });
+                return Exercise.find({ userId: parent.id });
             }
         },
         foods: {
             type: new GraphQLList(FoodType),
             resolve(parent, args) {
-                return _.filter(foods, { userId: parent.id });
+                return Food.find({ userId: parent.id });
             }
         }
     })
@@ -96,35 +93,41 @@ const RootQuery = new GraphQLObjectType({
     fields: {
         food: {
             type: FoodType,
-            args: { name: { type: GraphQLString } },
+            args: { id: { type: GraphQLID } },
             resolve(parent, args) {
-                return _.find(foods, { name: args.name });
+                return Food.findById(args.id);
             }
         },
         exercise: {
             type: ExerciseType,
-            args: { name: { type: GraphQLString } },
+            args: { id: { type: GraphQLID } },
             resolve(parent, args) {
-                return _.find(exercises, { name: args.name });
+                return Exercise.findById(args.id);
             }
         },
         user: {
             type: UserType,
-            args: { name: { type: GraphQLString } },
+            args: { id: { type: GraphQLID } },
             resolve(parent, args) {
-                return _.find(users, { name: args.name });
+                return User.findById(args.id);
             }
         },
         foods: {
             type: new GraphQLList(FoodType),
             resolve(parent, args) {
-                return foods;
+                return Food.find({});
             }
         },
         exercises: {
             type: new GraphQLList(ExerciseType),
             resolve(parent, args) {
-                return exercises;
+                return Exercise.find({});
+            }
+        },
+        users: {
+            type: new GraphQLList(UserType),
+            resolve(parent, args) {
+                return User.find({});
             }
         }
     }
@@ -144,7 +147,43 @@ const Mutation = new GraphQLObjectType({
                 });
                 return user.save();
             }
-        }
+        },
+        addFood: {
+            type: FoodType,
+            args: {
+                name: { type: GraphQLString },
+                calories: { type: GraphQLFloat },
+                userId: { type: GraphQLID }
+            },
+            resolve(parent, args) {
+                let food = new Food({
+                    name: args.name,
+                    calories: args.calories,
+                    userId: args.userId
+                });
+                return food.save();
+            }
+        }/* ,
+        addExercise: {
+            type: ExerciseType,
+            args: {
+                name: { type: GraphQLString },
+                status: { type: GraphQLString },
+                calories: { type: GraphQLFloat },
+                due: { type: GraphQLString },
+                userId: { Type: GraphQLID }
+            },
+            resolve(parents, args) {
+                let exercise = new Exercise({
+                    name: args.name,
+                    status: args.status,
+                    calories: args.calories,
+                    due: args.due,
+                    userId: args.userId
+                });
+                return exercise.save(); 
+            }
+    } */
     }
 });
 
