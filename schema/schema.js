@@ -9,6 +9,7 @@ const {
     GraphQLObjectType,
     GraphQLString,
     GraphQLFloat,
+    GraphQLInt,
     GraphQLID,
     GraphQLSchema,
     GraphQLList
@@ -87,6 +88,15 @@ const UserType = new GraphQLObjectType({
                 return Food.find({ userId: parent.id });
             }
         }
+    })
+});
+
+const authData = new GraphQLObjectType({
+    name: 'Token',
+    fields: () => ({
+        id: { type: GraphQLID },
+        token: { type: GraphQLString },
+        tokenExpiration: { type: GraphQLInt }
     })
 });
 
@@ -190,6 +200,117 @@ const Mutation = new GraphQLObjectType({
                     userId: args.userId
                 });
                 return exercise.save();
+            }
+        },
+        deleteUser: {
+            type: UserType,
+            args: {
+                name: { type: GraphQLString },
+                email: { type: GraphQLString },
+                password: { type: GraphQLString }
+            },
+            resolve(parent, args) {
+                User.deleteOne({ email: args.email, password: args.password }).then(function () {
+                    console.log("Data deleted"); // Success 
+                }).catch(function (error) {
+                    console.log(error); // Failure 
+                });
+            }
+        },
+        editUser: {
+            type: UserType,
+            args: {
+                name: { type: GraphQLString },
+                email: { type: GraphQLString },
+                password: { type: GraphQLString }
+            },
+            resolve(parent, args) {
+                User.updateOne({ name: args.name, email: args.email },
+                    { password: args.password }, function (err, docs) {
+                        if (err) {
+                            console.log(err)
+                        }
+                        else {
+                            console.log("Updated Docs : ", docs);
+                        }
+                    });
+            }
+        },
+        deleteFood: {
+            type: FoodType,
+            args: {
+                name: { type: GraphQLString },
+                calories: { type: GraphQLFloat },
+                userId: { type: GraphQLID },
+                date: { type: GraphQLString }
+            },
+            resolve(parent, args) {
+                Food.deleteOne({
+                    name: args.name, calories: args.calories,
+                    userId: args.userId, date: args.date
+                }).then(function () {
+                    console.log("Data deleted"); // Success 
+                }).catch(function (error) {
+                    console.log(error); // Failure 
+                });
+            }
+        },
+        editFood: {
+            type: FoodType,
+            args: {
+                name: { type: GraphQLString },
+                calories: { type: GraphQLFloat },
+                userId: { type: GraphQLID },
+                date: { type: GraphQLString }
+            },
+            resolve(parent, args) {
+                Food.updateOne({ name: args.name, userId: args.userId },
+                    { calories: args.calories, date: args.date }, function (err, docs) {
+                        if (err) {
+                            console.log(err)
+                        }
+                        else {
+                            console.log("Updated Docs : ", docs);
+                        }
+                    });
+            }
+        },
+        deleteExercise: {
+            type: ExerciseType,
+            args: {
+                name: { type: GraphQLString },
+                status: { type: GraphQLString },
+                calories: { type: GraphQLFloat },
+                due: { type: GraphQLString },
+                userId: { type: GraphQLID }
+            },
+            resolve(parent, args) {
+                Exercise.deleteOne({ name: args.name, status: args.status, userId: args.userId }).then(function () {
+                    console.log("Data deleted"); // Success 
+                }).catch(function (error) {
+                    console.log(error); // Failure 
+                });
+            }
+        },
+        editExercise: {
+            type: ExerciseType,
+            args: {
+                name: { type: GraphQLString },
+                status: { type: GraphQLString },
+                calories: { type: GraphQLFloat },
+                due: { type: GraphQLString },
+                userId: { type: GraphQLID }
+            },
+            resolve(parent, args) {
+                Exercise.updateOne({ name: args.name, userId: args.userId },
+                    { status: args.status, calories: args.calories, due: args.due }, function (err, docs) {
+                        if (err) {
+                            console.log(err)
+                        }
+                        else {
+                            console.log("Updated Docs : ", docs);
+                        }
+                    });
             }
         }
     }
