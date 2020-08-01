@@ -1,4 +1,5 @@
 const graphql = require('graphql');
+const axios = require('axios');
 const _ = require('lodash');
 const Food = require('../models/food');
 const Exercise = require('../models/exercise');
@@ -47,7 +48,8 @@ const FoodType = new GraphQLObjectType({
             resolve(parent, args) {
                 return User.findById(parent.userId);
             }
-        }
+        },
+        date: { type: GraphQLString }
     })
 });
 
@@ -139,11 +141,15 @@ const Mutation = new GraphQLObjectType({
         addUser: {
             type: UserType,
             args: {
-                name: { type: GraphQLString }
+                name: { type: GraphQLString },
+                email: { type: GraphQLString },
+                password: { type: GraphQLString }
             },
             resolve(parent, args) {
                 let user = new User({
-                    name: args.name
+                    name: args.name,
+                    email: args.email,
+                    password: args.password
                 });
                 return user.save();
             }
@@ -153,13 +159,15 @@ const Mutation = new GraphQLObjectType({
             args: {
                 name: { type: GraphQLString },
                 calories: { type: GraphQLFloat },
-                userId: { type: GraphQLID }
+                userId: { type: GraphQLID },
+                date: { type: GraphQLString }
             },
             resolve(parent, args) {
                 let food = new Food({
                     name: args.name,
                     calories: args.calories,
-                    userId: args.userId
+                    userId: args.userId,
+                    date: args.date
                 });
                 return food.save();
             }
