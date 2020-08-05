@@ -1,9 +1,11 @@
 const graphql = require('graphql');
 const axios = require('axios');
+const bcrypt = require('bcryptjs');
 const _ = require('lodash');
 const Food = require('../models/food');
 const Exercise = require('../models/exercise');
 const User = require('../models/user');
+const { result } = require('lodash');
 
 const {
     GraphQLObjectType,
@@ -50,6 +52,7 @@ const FoodType = new GraphQLObjectType({
                 return User.findById(parent.userId);
             }
         },
+        status: { type: GraphQLString },
         date: { type: GraphQLString }
     })
 });
@@ -156,12 +159,26 @@ const Mutation = new GraphQLObjectType({
                 password: { type: GraphQLString }
             },
             resolve(parent, args) {
-                let user = new User({
-                    name: args.name,
-                    email: args.email,
-                    password: args.password
-                });
-                return user.save();
+                return User.findOne({ email: args.email }).then(user => {
+                    if (user) {
+                        throw new Error('User exists already.');
+                    }
+                    return bcrypt.hash(args.password, 12);
+                })
+                    .then(hashedPassword => {
+                        let user = new User({
+                            name: args.name,
+                            email: args.email,
+                            password: hashedPassword
+                        });
+                        return user.save();
+                    })
+                    .then(result => {
+                        return { ...result._doc }
+                    })
+                    .catch(err => {
+                        throw err;
+                    });
             }
         },
         addFood: {
@@ -170,6 +187,7 @@ const Mutation = new GraphQLObjectType({
                 name: { type: GraphQLString },
                 calories: { type: GraphQLFloat },
                 userId: { type: GraphQLID },
+                status: { type: GraphQLString },
                 date: { type: GraphQLString }
             },
             resolve(parent, args) {
@@ -177,6 +195,7 @@ const Mutation = new GraphQLObjectType({
                     name: args.name,
                     calories: args.calories,
                     userId: args.userId,
+                    status: args.status,
                     date: args.date
                 });
                 return food.save();
@@ -210,7 +229,7 @@ const Mutation = new GraphQLObjectType({
                 password: { type: GraphQLString }
             },
             resolve(parent, args) {
-                User.deleteOne({ email: args.email, password: args.password }).then(function () {
+                User.deleteOne({ email: args.email }).then(function () {
                     console.log("Data deleted"); // Success 
                 }).catch(function (error) {
                     console.log(error); // Failure 
@@ -242,12 +261,12 @@ const Mutation = new GraphQLObjectType({
                 name: { type: GraphQLString },
                 calories: { type: GraphQLFloat },
                 userId: { type: GraphQLID },
+                status: { type: GraphQLString },
                 date: { type: GraphQLString }
             },
             resolve(parent, args) {
                 Food.deleteOne({
-                    name: args.name, calories: args.calories,
-                    userId: args.userId, date: args.date
+                    name: args.name
                 }).then(function () {
                     console.log("Data deleted"); // Success 
                 }).catch(function (error) {
@@ -261,11 +280,12 @@ const Mutation = new GraphQLObjectType({
                 name: { type: GraphQLString },
                 calories: { type: GraphQLFloat },
                 userId: { type: GraphQLID },
+                status: { type: GraphQLString },
                 date: { type: GraphQLString }
             },
             resolve(parent, args) {
                 Food.updateOne({ name: args.name, userId: args.userId },
-                    { calories: args.calories, date: args.date }, function (err, docs) {
+                    { calories: args.calories, status: args.status, date: args.date }, function (err, docs) {
                         if (err) {
                             console.log(err)
                         }
@@ -285,7 +305,7 @@ const Mutation = new GraphQLObjectType({
                 userId: { type: GraphQLID }
             },
             resolve(parent, args) {
-                Exercise.deleteOne({ name: args.name, status: args.status, userId: args.userId }).then(function () {
+                Exercise.deleteOne({ name: args.name }).then(function () {
                     console.log("Data deleted"); // Success 
                 }).catch(function (error) {
                     console.log(error); // Failure 
