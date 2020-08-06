@@ -10,6 +10,7 @@ const foodSchema = new Schema({
     },
     status: String,
     date: String,
+    liked: Boolean
 });
 
 

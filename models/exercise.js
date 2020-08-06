@@ -9,7 +9,8 @@ const exerciseSchema = new Schema({
     userId: {
         type: Schema.Types.ObjectId,
         ref: 'User'
-    }
+    },
+    liked: Boolean
 });
 
 

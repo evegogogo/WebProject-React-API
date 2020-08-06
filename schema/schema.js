@@ -15,7 +15,8 @@ const {
     GraphQLID,
     GraphQLSchema,
     GraphQLList,
-    GraphQLScalarType
+    GraphQLScalarType,
+    GraphQLBoolean
 } = graphql;
 
 
@@ -54,7 +55,8 @@ const FoodType = new GraphQLObjectType({
             }
         },
         status: { type: GraphQLString },
-        date: { type: GraphQLString }
+        date: { type: GraphQLString },
+        liked: { type: GraphQLBoolean }
     })
 });
 
@@ -71,7 +73,8 @@ const ExerciseType = new GraphQLObjectType({
             resolve(parent, args) {
                 return User.findById(parent.userId);
             }
-        }
+        },
+        liked: { type: GraphQLBoolean }
     })
 });
 
@@ -198,7 +201,8 @@ const Mutation = new GraphQLObjectType({
                 calories: { type: GraphQLFloat },
                 userId: { type: GraphQLID },
                 status: { type: GraphQLString },
-                date: { type: GraphQLString }
+                date: { type: GraphQLString },
+                liked: { type: GraphQLBoolean }
             },
             resolve(parent, args) {
                 return Food.findOne({ name: args.name }).then(food => {
@@ -210,7 +214,8 @@ const Mutation = new GraphQLObjectType({
                             calories: args.calories,
                             userId: args.userId,
                             status: args.status,
-                            date: args.date
+                            date: args.date,
+                            liked: false
                         });
                         return food.save();
                     }
@@ -224,7 +229,8 @@ const Mutation = new GraphQLObjectType({
                 status: { type: GraphQLString },
                 calories: { type: GraphQLFloat },
                 date: { type: GraphQLString },
-                userId: { type: GraphQLID }
+                userId: { type: GraphQLID },
+                liked: { type: GraphQLBoolean }
             },
             resolve(parents, args) {
                 return Exercise.findOne({ name: args.name }).then(exercise => {
@@ -236,7 +242,8 @@ const Mutation = new GraphQLObjectType({
                             status: args.status,
                             calories: args.calories,
                             date: args.date,
-                            userId: args.userId
+                            userId: args.userId,
+                            liked: false
                         });
                         return exercise.save();
                     }
@@ -284,7 +291,8 @@ const Mutation = new GraphQLObjectType({
                 calories: { type: GraphQLFloat },
                 userId: { type: GraphQLID },
                 status: { type: GraphQLString },
-                date: { type: GraphQLString }
+                date: { type: GraphQLString },
+                liked: { type: GraphQLBoolean }
             },
             resolve(parent, args) {
                 Food.deleteOne({
@@ -303,11 +311,12 @@ const Mutation = new GraphQLObjectType({
                 calories: { type: GraphQLFloat },
                 userId: { type: GraphQLID },
                 status: { type: GraphQLString },
-                date: { type: GraphQLString }
+                date: { type: GraphQLString },
+                liked: { type: GraphQLBoolean }
             },
             resolve(parent, args) {
                 Food.updateOne({ name: args.name, userId: args.userId },
-                    { calories: args.calories, status: args.status, date: args.date }, function (err, docs) {
+                    { liked: !args.liked }, function (err, docs) {
                         if (err) {
                             console.log(err)
                         }
@@ -324,7 +333,8 @@ const Mutation = new GraphQLObjectType({
                 status: { type: GraphQLString },
                 calories: { type: GraphQLFloat },
                 date: { type: GraphQLString },
-                userId: { type: GraphQLID }
+                userId: { type: GraphQLID },
+                liked: { type: GraphQLBoolean }
             },
             resolve(parent, args) {
                 Exercise.deleteOne({ name: args.name }).then(function () {
@@ -341,11 +351,12 @@ const Mutation = new GraphQLObjectType({
                 status: { type: GraphQLString },
                 calories: { type: GraphQLFloat },
                 date: { type: GraphQLString },
-                userId: { type: GraphQLID }
+                userId: { type: GraphQLID },
+                liked: { type: GraphQLBoolean }
             },
             resolve(parent, args) {
                 Exercise.updateOne({ name: args.name, userId: args.userId },
-                    { status: args.status, calories: args.calories, date: args.date }, function (err, docs) {
+                    { liked: !args.liked }, function (err, docs) {
                         if (err) {
                             console.log(err)
                         }
