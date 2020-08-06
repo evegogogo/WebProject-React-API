@@ -5,7 +5,7 @@ const exerciseSchema = new Schema({
     name: String,
     status: String,
     calories: Number,
-    due: String,
+    date: String,
     userId: {
         type: Schema.Types.ObjectId,
         ref: 'User'

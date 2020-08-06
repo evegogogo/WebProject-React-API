@@ -9,7 +9,7 @@ const foodSchema = new Schema({
         ref: 'User'
     },
     status: String,
-    date: Date,
+    date: String,
 });
 
 
