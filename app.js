@@ -6,12 +6,15 @@ const schema = require('./schema/schema');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const isAuth = require('./middleware/is-auth');
 
 const app = express();
 
 app.use(cors());
 
 app.use(bodyParser.json());
+
+app.use(isAuth);
 
 app.use('/graphql', graphqlHTTP({
     schema,
