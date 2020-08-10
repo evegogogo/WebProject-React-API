@@ -189,33 +189,34 @@ const Mutation = new GraphQLObjectType({
     name: 'Mutation',
     fields: {
         addUser: {
-            type: UserType,
+            type: authData,
             args: {
                 name: { type: GraphQLString },
                 email: { type: GraphQLString },
                 password: { type: GraphQLString }
             },
-            resolve(parent, args) {
-                return User.findOne({ email: args.email }).then(user => {
-                    if (user) {
-                        throw new Error('User exists already.');
-                    }
-                    return bcrypt.hash(args.password, 12);
-                })
-                    .then(hashedPassword => {
-                        let user = new User({
-                            name: args.name,
-                            email: args.email,
-                            password: hashedPassword
-                        });
-                        return user.save();
-                    })
-                    .then(result => {
-                        return { ...result._doc }
-                    })
-                    .catch(err => {
-                        throw err;
-                    });
+            async resolve(parent, args) {
+                let user = await User.findOne({ email: args.email });
+
+                if (user) {
+                    throw new Error('User exists already.');
+                }
+                const hashedPassword = await bcrypt.hash(args.password, 12);
+
+                user = new User({
+                    name: args.name,
+                    email: args.email,
+                    password: hashedPassword
+                });
+                await user.save();
+                const token = jwt.sign({ id: user.id, email: user.email, password: user.password }, 'jingzheng', {
+                    expiresIn: '1h'
+                });
+                return { id: user.id, token: token, tokenExpiration: 1 };
+                /* .then(result => {
+                    return { ...result._doc }
+                }) */
+
             }
         },
         addFood: {
