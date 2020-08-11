@@ -5,6 +5,7 @@ const _ = require('lodash');
 const Food = require('../models/food');
 const Exercise = require('../models/exercise');
 const User = require('../models/user');
+const jwt = require('jsonwebtoken');
 const { result } = require('lodash');
 
 const {
@@ -161,13 +162,24 @@ const RootQuery = new GraphQLObjectType({
             }
         },
         login: {
-            type: UserType,
+            type: authData,
             args: {
                 email: { type: GraphQLString },
                 password: { type: GraphQLString }
             },
-            resolve(parent, args) {
-                return User.findOne({ email: args.email, password: args.password });
+            async resolve(parent, args) {
+                const user = await User.findOne({ email: args.email });
+                if (!user) {
+                    throw new Error("User does not exist!");
+                }
+                const isEqual = await bcrypt.compare(args.password, user.password);
+                if (!isEqual) {
+                    throw new Error('Password is incorrect!');
+                }
+                const token = jwt.sign({ id: user.id, email: user.email }, 'jingzheng', {
+                    expiresIn: '1h'
+                });
+                return { id: user.id, token: token, tokenExpiration: 1 };
             }
         }
     }
@@ -177,33 +189,34 @@ const Mutation = new GraphQLObjectType({
     name: 'Mutation',
     fields: {
         addUser: {
-            type: UserType,
+            type: authData,
             args: {
                 name: { type: GraphQLString },
                 email: { type: GraphQLString },
                 password: { type: GraphQLString }
             },
-            resolve(parent, args) {
-                return User.findOne({ email: args.email }).then(user => {
-                    if (user) {
-                        throw new Error('User exists already.');
-                    }
-                    return bcrypt.hash(args.password, 12);
-                })
-                    .then(hashedPassword => {
-                        let user = new User({
-                            name: args.name,
-                            email: args.email,
-                            password: hashedPassword
-                        });
-                        return user.save();
-                    })
-                    .then(result => {
-                        return { ...result._doc }
-                    })
-                    .catch(err => {
-                        throw err;
-                    });
+            async resolve(parent, args) {
+                let user = await User.findOne({ email: args.email });
+
+                if (user) {
+                    throw new Error('User exists already.');
+                }
+                const hashedPassword = await bcrypt.hash(args.password, 12);
+
+                user = new User({
+                    name: args.name,
+                    email: args.email,
+                    password: hashedPassword
+                });
+                await user.save();
+                const token = jwt.sign({ id: user.id, email: user.email, password: user.password }, 'jingzheng', {
+                    expiresIn: '1h'
+                });
+                return { id: user.id, token: token, tokenExpiration: 1 };
+                /* .then(result => {
+                    return { ...result._doc }
+                }) */
+
             }
         },
         addFood: {
@@ -216,7 +229,10 @@ const Mutation = new GraphQLObjectType({
                 date: { type: GraphQLString },
                 liked: { type: GraphQLBoolean }
             },
-            resolve(parent, args) {
+            resolve(parent, args, req) {
+                if (!req.isAuth) {
+                    throw new Error('Unauthenticated!');
+                }
                 return Food.findOne({ name: args.name }).then(food => {
                     if (food) {
                         console.log('Food exists already.');
