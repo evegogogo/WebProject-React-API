@@ -3,6 +3,7 @@ const axios = require('axios');
 const bcrypt = require('bcryptjs');
 const _ = require('lodash');
 const Food = require('../models/food');
+const Message = require('../models/message');
 const Exercise = require('../models/exercise');
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
@@ -116,6 +117,15 @@ const authData = new GraphQLObjectType({
         id: { type: GraphQLID },
         token: { type: GraphQLString },
         tokenExpiration: { type: GraphQLInt }
+    })
+});
+
+const userMessage = new GraphQLObjectType({
+    name: 'Message',
+    fields: () => ({
+        name: { type: GraphQLString },
+        email: { type: GraphQLString },
+        message: { type: GraphQLString }
     })
 });
 
@@ -364,6 +374,22 @@ const Mutation = new GraphQLObjectType({
                 }).catch(function (error) {
                     console.log(error); // Failure 
                 });
+            }
+        },
+        sendMessage: {
+            type: userMessage,
+            args: {
+                name: { type: GraphQLString },
+                email: { type: GraphQLString },
+                message: { type: GraphQLString }
+            },
+            resolve(parent, args) {
+                let m = new Message({
+                    name: args.name,
+                    email: args.email,
+                    message: args.message
+                });
+                return m.save();
             }
         },
         editExercise: {
