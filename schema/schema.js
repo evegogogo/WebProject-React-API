@@ -229,10 +229,7 @@ const Mutation = new GraphQLObjectType({
                 date: { type: GraphQLString },
                 liked: { type: GraphQLBoolean }
             },
-            resolve(parent, args, req) {
-                if (!req.isAuth) {
-                    throw new Error('Unauthenticated!');
-                }
+            resolve(parent, args) {
                 return Food.findOne({ name: args.name }).then(food => {
                     if (food) {
                         console.log('Food exists already.');
@@ -260,17 +257,17 @@ const Mutation = new GraphQLObjectType({
                 userId: { type: GraphQLID },
                 liked: { type: GraphQLBoolean }
             },
-            resolve(parents, args) {
+            resolve(parent, args) {
                 return Exercise.findOne({ name: args.name }).then(exercise => {
                     if (exercise) {
-                        console.log('Exercise exists already.')
+                        console.log('Exercise exists already.');
                     } else {
                         let exercise = new Exercise({
                             name: args.name,
-                            status: args.status,
                             calories: args.calories,
-                            date: args.date,
                             userId: args.userId,
+                            status: args.status,
+                            date: args.date,
                             liked: false
                         });
                         return exercise.save();
@@ -336,15 +333,12 @@ const Mutation = new GraphQLObjectType({
             type: FoodType,
             args: {
                 name: { type: GraphQLString },
-                calories: { type: GraphQLFloat },
-                userId: { type: GraphQLID },
-                status: { type: GraphQLString },
-                date: { type: GraphQLString },
                 liked: { type: GraphQLBoolean }
             },
             resolve(parent, args) {
-                Food.updateOne({ name: args.name, userId: args.userId },
-                    { liked: !args.liked }, function (err, docs) {
+                console.log(args);
+                Food.updateOne({ name: args.name },
+                    { liked: args.liked }, function (err, docs) {
                         if (err) {
                             console.log(err)
                         }
@@ -383,7 +377,7 @@ const Mutation = new GraphQLObjectType({
                 liked: { type: GraphQLBoolean }
             },
             resolve(parent, args) {
-                Exercise.updateOne({ name: args.name, userId: args.userId },
+                Exercise.updateOne({ name: args.name },
                     { liked: !args.liked }, function (err, docs) {
                         if (err) {
                             console.log(err)
